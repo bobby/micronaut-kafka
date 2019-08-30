@@ -34,7 +34,7 @@ import javax.inject.Singleton;
  */
 @Requires(missingProperty = NamedKafkaStreamsConfiguration.PREFIX + ".default")
 @Singleton
-@Requires(beans = KafkaDefaultConfiguration.class)
+@Requires(beans = NamedKafkaStreamsConfiguration.class)
 @Named("default")
 @Primary
 public class DefaultKafkaStreamsConfiguration<K, V> extends AbstractKafkaStreamsConfiguration<K, V> {

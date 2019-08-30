@@ -84,7 +84,7 @@ public class WordCountStream {
     @Singleton
     @Named(MY_STREAM)
     KStream<String, String> myStream(
-            @Named(MY_STREAM) NamedKafkaStreamsConfiguration config) {
+            @Named(MY_STREAM) KafkaStreamsConfiguration config) {
 
         // end::namedStream[]
         // set default serdes

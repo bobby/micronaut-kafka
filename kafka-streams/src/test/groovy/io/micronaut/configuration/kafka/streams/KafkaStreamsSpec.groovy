@@ -61,9 +61,13 @@ class KafkaStreamsSpec extends Specification {
 
     void "test config from stream"() {
         when:
-        def stream = context.getBean(KafkaStreams, Qualifiers.byName("my-stream"))
+        def config = context.getBean(NamedKafkaStreamsConfiguration, Qualifiers.byName("my-stream"))
+        def builder = new ConfiguredStreamBuilder(config)
+        def streams = new KafkaStreams()
+
 
         then:
+
         stream.config.originals().get('application.id') == "my-stream"
         stream.config.originals().get('generic.config') == "hello"
     }
@@ -71,7 +75,7 @@ class KafkaStreamsSpec extends Specification {
     void "test kafka stream application"() {
         given:
         InteractiveQueryServiceExample interactiveQueryService = context.getBean(InteractiveQueryServiceExample)
-        PollingConditions conditions = new PollingConditions(timeout: 40, delay: 1)
+        PollingConditions conditions = new PollingConditions(timeout: 10, delay: 1)
 
         when:
         WordCountClient wordCountClient = context.getBean(WordCountClient)

@@ -18,10 +18,10 @@ package io.micronaut.configuration.kafka.streams;
 import io.micronaut.context.annotation.Context;
 import io.micronaut.context.annotation.EachBean;
 import io.micronaut.context.annotation.Factory;
+import io.micronaut.context.annotation.Requires;
 import org.apache.kafka.streams.KafkaStreams;
 
 import javax.annotation.PreDestroy;
-import javax.inject.Singleton;
 import java.io.Closeable;
 import java.time.Duration;
 import java.util.Collection;
@@ -35,44 +35,33 @@ import java.util.concurrent.ConcurrentLinkedDeque;
  */
 @Factory
 public class KafkaStreamsFactory implements Closeable {
-
-    private final Collection<KafkaStreams> streams = new ConcurrentLinkedDeque<>();
+    private final Collection<StreamsManager> streamsManagers = new ConcurrentLinkedDeque<>();
 
     /**
-     * Builds the default {@link KafkaStreams} bean from the configuration and the supplied {@link ConfiguredStreamBuilder}.
+     * Builds the default {@link StreamsManager} bean from the configuration and the supplied {@link ConfiguredStreamBuilder}.
      *
-     * @param config The builder
-     * @return The {@link KafkaStreams} bean
+     * @param builder The builder
+     * @return The {@link StreamsManager} bean
      */
     @EachBean(KafkaStreamsConfiguration.class)
+    @Requires(notEnv = "mock-kafka-streams")
     @Context
-    KafkaStreams kafkaStreams(KafkaStreamsConfiguration config) {
-        ConfiguredStreamBuilder builder = new ConfiguredStreamBuilder(config);
-        KafkaStreams kafkaStreams = new KafkaStreams(
+    StreamsManager kafkaStreams(ConfiguredStreamBuilder builder) {
+        StreamsManager manager = new KafkaStreamsManager(new KafkaStreams(
                 builder.build(),
                 builder.getConfiguration()
-        );
-        streams.add(kafkaStreams);
-        kafkaStreams.start();
-        return kafkaStreams;
-    }
-
-    /**
-     * Create the interactive query service bean.
-     *
-     * @return Rhe {@link InteractiveQueryService} bean
-     */
-    @Singleton
-    InteractiveQueryService interactiveQueryService() {
-        return new InteractiveQueryService(streams);
+        ));
+        streamsManagers.add(manager);
+        manager.start();
+        return manager;
     }
 
     @Override
     @PreDestroy
     public void close() {
-        for (KafkaStreams stream : streams) {
+        for (StreamsManager manager : streamsManagers) {
             try {
-                stream.close(Duration.ofSeconds(3));
+                manager.close(Duration.ofSeconds(3));
             } catch (Exception e) {
                 // ignore
             }
