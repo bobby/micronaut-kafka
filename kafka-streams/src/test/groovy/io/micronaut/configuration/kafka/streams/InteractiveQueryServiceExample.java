@@ -3,6 +3,7 @@ package io.micronaut.configuration.kafka.streams;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Optional;
 
@@ -14,6 +15,7 @@ public class InteractiveQueryServiceExample {
 
     private final InteractiveQueryService interactiveQueryService;
 
+    @Inject
     public InteractiveQueryServiceExample(InteractiveQueryService interactiveQueryService) {
         this.interactiveQueryService = interactiveQueryService;
     }

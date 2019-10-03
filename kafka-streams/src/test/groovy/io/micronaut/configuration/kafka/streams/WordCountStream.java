@@ -18,15 +18,16 @@ package io.micronaut.configuration.kafka.streams;
 // tag::imports[]
 
 import io.micronaut.context.annotation.Factory;
-import kafka.Kafka;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Grouped;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
+import sun.security.krb5.Config;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -49,7 +50,7 @@ public class WordCountStream {
     // tag::wordCountStream[]
     @Singleton
     @Named(STREAM_WORD_COUNT)
-    KStream<String, String> wordCountStream(NamedKafkaStreamsConfiguration config) { // <3>
+    ConfiguredStreamBuilder wordCountStream(NamedKafkaStreamsConfiguration  config) { // <3>
         // set default serdes
         ConfiguredStreamBuilder builder = new ConfiguredStreamBuilder(config);
         Properties props = builder.getConfiguration();
@@ -72,7 +73,7 @@ public class WordCountStream {
                 //send to output using specific serdes
                 .to(OUTPUT, Produced.with(Serdes.String(), Serdes.Long()));
 
-        return source;
+        return builder;
     }
     // end::wordCountStream[]
 
@@ -83,12 +84,13 @@ public class WordCountStream {
 
     @Singleton
     @Named(MY_STREAM)
-    KStream<String, String> myStream(
-            @Named(MY_STREAM) KafkaStreamsConfiguration config) {
+    ConfiguredStreamBuilder myStream(
+            @Named(MY_STREAM) NamedKafkaStreamsConfiguration configuration ) {
 
         // end::namedStream[]
         // set default serdes
-        ConfiguredStreamBuilder builder = new ConfiguredStreamBuilder(config);
+        ConfiguredStreamBuilder builder = new ConfiguredStreamBuilder(configuration);
+
         Properties props = builder.getConfiguration();
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
@@ -102,6 +104,7 @@ public class WordCountStream {
 
         // need to override value serde to Long type
         counts.toStream().to(NAMED_WORD_COUNT_OUTPUT, Produced.with(Serdes.String(), Serdes.Long()));
-        return source;
+
+        return builder;
     }
 }
